@@ -1,1 +1,1103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel - La Cueva del Hechicero</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #111016;
+  color: #f4ead3;
+}
+
+header {
+  background: #19171e;
+  border-bottom: 1px solid #403844;
+  padding: 18px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+  font-family: Georgia, serif;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-main {
+  background: #b99a62;
+  color: #17151b;
+}
+
+.btn-dark {
+  background: #302b34;
+  color: #f4ead3;
+}
+
+.btn-danger {
+  background: #7c3434;
+  color: white;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 25px;
+}
+
+.login {
+  max-width: 420px;
+  margin: 80px auto;
+  background: #1c1920;
+  padding: 30px;
+  border-radius: 18px;
+  border: 1px solid #403844;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 12px;
+  margin: 7px 0 15px;
+  border-radius: 8px;
+  border: 1px solid #49424e;
+  background: #111016;
+  color: #f4ead3;
+  font-size: 16px;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+label {
+  font-size: 14px;
+  color: #c9bda3;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.category {
+  background: #1c1920;
+  border: 1px solid #403844;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.category-header {
+  padding: 15px 18px;
+  background: #242028;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.category-header h2 {
+  margin: 0;
+  font-family: Georgia, serif;
+}
+
+.products {
+  padding: 10px 15px;
+}
+
+.product {
+  display: grid;
+  grid-template-columns: 75px 1fr auto;
+  gap: 15px;
+  align-items: center;
+  padding: 13px 5px;
+  border-bottom: 1px solid #36303a;
+}
+
+.product:last-child {
+  border-bottom: 0;
+}
+
+.product img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #302b34;
+}
+
+.product-info strong {
+  display: block;
+  font-size: 17px;
+}
+
+.product-info span {
+  color: #bdb29e;
+  font-size: 13px;
+}
+
+.product-price {
+  color: #b99a62;
+  font-weight: bold;
+}
+
+.product-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  background: #315238;
+  color: white;
+}
+
+.badge.off {
+  background: #633b3b;
+}
+
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 20;
+}
+
+.modal {
+  background: #1c1920;
+  border: 1px solid #4a414d;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 25px;
+}
+
+.modal h2 {
+  margin-top: 0;
+  font-family: Georgia, serif;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.message {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  background: #29242d;
+}
+
+@media(max-width:650px) {
+  .product {
+    grid-template-columns: 60px 1fr;
+  }
+
+  .product img {
+    width: 55px;
+    height: 55px;
+  }
+
+  .product-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="loginScreen" class="login">
+  <h1>🧙‍♂️ La Cueva del Hechicero</h1>
+  <p>Panel de administración</p>
+
+  <div id="loginMessage"></div>
+
+  <label>Correo</label>
+  <input id="email" type="email" autocomplete="username">
+
+  <label>Contraseña</label>
+  <input id="password" type="password" autocomplete="current-password">
+
+  <button class="btn-main" id="loginBtn">Entrar</button>
+</div>
+
+
+<div id="app" class="hidden">
+
+<header>
+  <h1>🧙‍♂️ La Cueva del Hechicero</h1>
+  <button class="btn-dark" id="logoutBtn">Cerrar sesión</button>
+</header>
+
+<div class="container">
+
+  <div id="message"></div>
+
+  <div class="toolbar">
+    <button class="btn-main" id="newProductBtn">
+      + Agregar producto
+    </button>
+
+    <button class="btn-dark" id="newCategoryBtn">
+      + Nueva categoría
+    </button>
+  </div>
+
+  <div id="categoriesContainer">
+    Cargando menú...
+  </div>
+
+</div>
+</div>
+
+
+<div id="modalBg" class="modal-bg hidden">
+
+<div class="modal">
+
+  <h2 id="modalTitle">Producto</h2>
+
+  <label>Nombre</label>
+  <input id="productName">
+
+  <label>Descripción</label>
+  <textarea id="productDescription"></textarea>
+
+  <label>Precio</label>
+  <input id="productPrice" type="number" min="0" step="0.01">
+
+  <label>Categoría</label>
+  <select id="productCategory"></select>
+
+  <label>Orden</label>
+  <input id="productOrder" type="number" min="0" step="1">
+
+  <label>Fotografía</label>
+  <input id="productImage" type="file" accept="image/*">
+
+  <div class="modal-actions">
+    <button class="btn-dark" id="cancelBtn">Cancelar</button>
+    <button class="btn-main" id="saveBtn">Guardar</button>
+  </div>
+
+</div>
+</div>
+
+
+<script>
+
+const SUPABASE_URL = https://tmmtbzphcbpevmtokjrg.supabase.co;
+const SUPABASE_KEY = sb_publishable_mZ7LvM2y2t1xGbN2s1XFDg_DohTdt7q;
+
+const { createClient } =
+  supabase;
+
+const db = createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+let categories = [];
+let editingProduct = null;
+
+
+/* =========================
+   LOGIN
+========================= */
+
+document
+  .getElementById('loginBtn')
+  .addEventListener('click', login);
+
+async function login() {
+
+  const email =
+    document.getElementById('email').value.trim();
+
+  const password =
+    document.getElementById('password').value;
+
+  const result =
+    await db.auth.signInWithPassword({
+      email,
+      password
+    });
+
+  if (result.error) {
+
+    document.getElementById('loginMessage').innerHTML =
+      '<div class="message">' +
+      result.error.message +
+      '</div>';
+
+    return;
+  }
+
+  showApp();
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+document
+  .getElementById('logoutBtn')
+  .addEventListener('click', async () => {
+
+    await db.auth.signOut();
+
+    location.reload();
+
+  });
+
+
+/* =========================
+   INICIO
+========================= */
+
+async function start() {
+
+  const {
+    data
+  } = await db.auth.getSession();
+
+  if (data.session) {
+
+    showApp();
+
+  }
+
+}
+
+function showApp() {
+
+  document
+    .getElementById('loginScreen')
+    .classList.add('hidden');
+
+  document
+    .getElementById('app')
+    .classList.remove('hidden');
+
+  loadMenu();
+
+}
+
+
+/* =========================
+   CARGAR MENÚ
+========================= */
+
+async function loadMenu() {
+
+  const catResult =
+    await db
+      .from('categories')
+      .select('*')
+      .order('sort_order');
+
+  if (catResult.error) {
+
+    showMessage(catResult.error.message);
+    return;
+
+  }
+
+  categories = catResult.data;
+
+  const productResult =
+    await db
+      .from('products')
+      .select('*')
+      .order('sort_order');
+
+  if (productResult.error) {
+
+    showMessage(productResult.error.message);
+    return;
+
+  }
+
+  renderMenu(
+    categories,
+    productResult.data
+  );
+
+}
+
+
+/* =========================
+   MOSTRAR MENÚ
+========================= */
+
+function renderMenu(cats, products) {
+
+  const container =
+    document.getElementById(
+      'categoriesContainer'
+    );
+
+  container.innerHTML = '';
+
+  cats.forEach(category => {
+
+    const categoryProducts =
+      products.filter(
+        p => p.category_id === category.id
+      );
+
+    const section =
+      document.createElement('div');
+
+    section.className = 'category';
+
+    section.innerHTML = `
+      <div class="category-header">
+
+        <h2>
+          ${category.icon || '🍽️'}
+          ${escapeHtml(category.name)}
+        </h2>
+
+        <button
+          class="btn-dark"
+          onclick="editCategory(${category.id})">
+          Editar categoría
+        </button>
+
+      </div>
+
+      <div class="products">
+
+        ${
+          categoryProducts.length
+          ? categoryProducts.map(product =>
+              productHTML(product)
+            ).join('')
+          : '<p>No hay productos.</p>'
+        }
+
+      </div>
+    `;
+
+    container.appendChild(section);
+
+  });
+
+}
+
+
+function productHTML(product) {
+
+  const image =
+    product.image_url ||
+    '';
+
+  return `
+    <div class="product">
+
+      ${
+        image
+        ? `<img src="${image}" alt="">`
+        : `<div></div>`
+      }
+
+      <div class="product-info">
+
+        <strong>
+          ${escapeHtml(product.name)}
+        </strong>
+
+        <span>
+          ${escapeHtml(product.description || '')}
+        </span>
+
+        <div>
+          <span class="badge ${product.active ? '' : 'off'}">
+            ${product.active ? 'Visible' : 'Oculto'}
+          </span>
+        </div>
+
+      </div>
+
+      <div>
+
+        <div class="product-price">
+          $${Number(product.price).toFixed(2)}
+        </div>
+
+        <div class="product-actions">
+
+          <button
+            class="btn-dark"
+            onclick="editProduct(${product.id})">
+            Editar
+          </button>
+
+          <button
+            class="btn-dark"
+            onclick="toggleProduct(${product.id}, ${product.active})">
+            ${product.active ? 'Ocultar' : 'Mostrar'}
+          </button>
+
+          <button
+            class="btn-danger"
+            onclick="deleteProduct(${product.id})">
+            Eliminar
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+/* =========================
+   NUEVO PRODUCTO
+========================= */
+
+document
+  .getElementById('newProductBtn')
+  .addEventListener('click', () => {
+
+    editingProduct = null;
+
+    document.getElementById(
+      'modalTitle'
+    ).textContent = 'Nuevo producto';
+
+    clearProductForm();
+
+    fillCategorySelect();
+
+    openModal();
+
+  });
+
+
+function clearProductForm() {
+
+  document.getElementById(
+    'productName'
+  ).value = '';
+
+  document.getElementById(
+    'productDescription'
+  ).value = '';
+
+  document.getElementById(
+    'productPrice'
+  ).value = '';
+
+  document.getElementById(
+    'productOrder'
+  ).value = '0';
+
+  document.getElementById(
+    'productImage'
+  ).value = '';
+
+}
+
+
+/* =========================
+   EDITAR PRODUCTO
+========================= */
+
+async function editProduct(id) {
+
+  const result =
+    await db
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+  if (result.error) {
+
+    showMessage(result.error.message);
+    return;
+
+  }
+
+  editingProduct = result.data;
+
+  document.getElementById(
+    'modalTitle'
+  ).textContent = 'Editar producto';
+
+  fillCategorySelect();
+
+  document.getElementById(
+    'productName'
+  ).value = editingProduct.name;
+
+  document.getElementById(
+    'productDescription'
+  ).value =
+    editingProduct.description || '';
+
+  document.getElementById(
+    'productPrice'
+  ).value =
+    editingProduct.price;
+
+  document.getElementById(
+    'productOrder'
+  ).value =
+    editingProduct.sort_order || 0;
+
+  document.getElementById(
+    'productCategory'
+  ).value =
+    editingProduct.category_id;
+
+  openModal();
+
+}
+
+
+/* =========================
+   CATEGORÍAS
+========================= */
+
+function fillCategorySelect() {
+
+  const select =
+    document.getElementById(
+      'productCategory'
+    );
+
+  select.innerHTML = '';
+
+  categories.forEach(category => {
+
+    const option =
+      document.createElement('option');
+
+    option.value = category.id;
+
+    option.textContent =
+      `${category.icon || ''} ${category.name}`;
+
+    select.appendChild(option);
+
+  });
+
+}
+
+
+document
+  .getElementById('newCategoryBtn')
+  .addEventListener('click', newCategory);
+
+
+async function newCategory() {
+
+  const name =
+    prompt('Nombre de la nueva categoría:');
+
+  if (!name) return;
+
+  const icon =
+    prompt('Icono/emoji:', '🍽️');
+
+  const result =
+    await db
+      .from('categories')
+      .insert({
+        name,
+        icon: icon || '🍽️',
+        sort_order: categories.length + 1,
+        active: true
+      });
+
+  if (result.error) {
+
+    showMessage(result.error.message);
+    return;
+
+  }
+
+  loadMenu();
+
+}
+
+
+async function editCategory(id) {
+
+  const category =
+    categories.find(c => c.id === id);
+
+  if (!category) return;
+
+  const name =
+    prompt(
+      'Nombre:',
+      category.name
+    );
+
+  if (!name) return;
+
+  const icon =
+    prompt(
+      'Icono:',
+      category.icon || '🍽️'
+    );
+
+  const result =
+    await db
+      .from('categories')
+      .update({
+        name,
+        icon: icon || '🍽️'
+      })
+      .eq('id', id);
+
+  if (result.error) {
+
+    showMessage(result.error.message);
+    return;
+
+  }
+
+  loadMenu();
+
+}
+
+
+/* =========================
+   GUARDAR PRODUCTO
+========================= */
+
+document
+  .getElementById('saveBtn')
+  .addEventListener('click', saveProduct);
+
+
+async function saveProduct() {
+
+  const name =
+    document.getElementById(
+      'productName'
+    ).value.trim();
+
+  const description =
+    document.getElementById(
+      'productDescription'
+    ).value.trim();
+
+  const price =
+    Number(
+      document.getElementById(
+        'productPrice'
+      ).value
+    );
+
+  const category_id =
+    Number(
+      document.getElementById(
+        'productCategory'
+      ).value
+    );
+
+  const sort_order =
+    Number(
+      document.getElementById(
+        'productOrder'
+      ).value
+    ) || 0;
+
+  if (!name) {
+
+    alert('Escribe el nombre del producto.');
+    return;
+
+  }
+
+  if (!Number.isFinite(price) || price < 0) {
+
+    alert('Escribe un precio válido.');
+    return;
+
+  }
+
+
+  let image_url =
+    editingProduct
+      ? editingProduct.image_url
+      : null;
+
+
+  /* FOTO */
+
+  const file =
+    document.getElementById(
+      'productImage'
+    ).files[0];
+
+  if (file) {
+
+    const extension =
+      file.name.split('.').pop();
+
+    const fileName =
+      `${crypto.randomUUID()}.${extension}`;
+
+    const upload =
+      await db.storage
+        .from('productos')
+        .upload(
+          fileName,
+          file,
+          {
+            upsert: false
+          }
+        );
+
+    if (upload.error) {
+
+      alert(
+        'Error al subir la fotografía: ' +
+        upload.error.message
+      );
+
+      return;
+
+    }
+
+    const publicUrl =
+      db.storage
+        .from('productos')
+        .getPublicUrl(fileName);
+
+    image_url =
+      publicUrl.data.publicUrl;
+
+  }
+
+
+  const data = {
+    name,
+    description,
+    price,
+    category_id,
+    sort_order,
+    image_url
+  };
+
+
+  let result;
+
+
+  if (editingProduct) {
+
+    result =
+      await db
+        .from('products')
+        .update(data)
+        .eq(
+          'id',
+          editingProduct.id
+        );
+
+  } else {
+
+    result =
+      await db
+        .from('products')
+        .insert({
+          ...data,
+          active: true
+        });
+
+  }
+
+
+  if (result.error) {
+
+    alert(
+      'Error: ' +
+      result.error.message
+    );
+
+    return;
+
+  }
+
+  closeModal();
+
+  loadMenu();
+
+}
+
+
+/* =========================
+   OCULTAR / MOSTRAR
+========================= */
+
+async function toggleProduct(id, active) {
+
+  const result =
+    await db
+      .from('products')
+      .update({
+        active: !active
+      })
+      .eq('id', id);
+
+  if (result.error) {
+
+    showMessage(result.error.message);
+    return;
+
+  }
+
+  loadMenu();
+
+}
+
+
+/* =========================
+   ELIMINAR
+========================= */
+
+async function deleteProduct(id) {
+
+  if (
+    !confirm(
+      '¿Seguro que quieres eliminar este producto?'
+    )
+  ) return;
+
+  const result =
+    await db
+      .from('products')
+      .delete()
+      .eq('id', id);
+
+  if (result.error) {
+
+    showMessage(result.error.message);
+    return;
+
+  }
+
+  loadMenu();
+
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+function openModal() {
+
+  document
+    .getElementById('modalBg')
+    .classList.remove('hidden');
+
+}
+
+function closeModal() {
+
+  document
+    .getElementById('modalBg')
+    .classList.add('hidden');
+
+}
+
+document
+  .getElementById('cancelBtn')
+  .addEventListener(
+    'click',
+    closeModal
+  );
+
+
+/* =========================
+   MENSAJES
+========================= */
+
+function showMessage(text) {
+
+  document.getElementById(
+    'message'
+  ).innerHTML =
+    `<div class="message">${escapeHtml(text)}</div>`;
+
+}
+
+
+/* =========================
+   SEGURIDAD HTML
+========================= */
+
+function escapeHtml(value) {
+
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+
+}
+
+
+/* =========================
+   ARRANCAR
+========================= */
+
+start();
+
+</script>
+
+</body>
+</html>
