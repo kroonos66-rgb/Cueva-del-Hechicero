@@ -10,8 +10,8 @@
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
   window.createSupabaseClient = createClient;
+  window.dispatchEvent(new Event('supabase-ready'));
 </script>
-
 <style>
 
 *{
@@ -593,8 +593,7 @@ function escapeAttribute(value){
    INICIAR
 ===================================== */
 
-loadMenu();
-
+window.addEventListener('supabase-ready', loadMenu);
 </script>
 
 </body>
