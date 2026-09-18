@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
 
 <title>La Cueva del Hechicero | Menú</title>
 
-<script type="module">
- import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 <style>
 
 *{
@@ -17,7 +21,12 @@
 body{
   margin:0;
   background:
-    radial-gradient(circle at 50% 0%, #30251c 0%, #17131a 45%, #0d0b10 100%);
+    radial-gradient(
+      circle at 50% 0%,
+      #30251c 0%,
+      #17131a 45%,
+      #0d0b10 100%
+    );
   color:#f4ead3;
   font-family:Georgia,serif;
 }
@@ -195,7 +204,9 @@ h1{
 }
 
 </style>
+
 </head>
+
 
 <body>
 
@@ -233,11 +244,12 @@ h1{
       class="section-title">
     </div>
 
-    <div
-      id="products">
+    <div id="products">
+
       <div class="loading">
         Consultando el grimorio...
       </div>
+
     </div>
 
   </section>
@@ -250,7 +262,12 @@ h1{
 </div>
 
 
-<script>
+<script type="module">
+
+import {
+  createClient
+} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
 
 /* =====================================
    CONEXIÓN SUPABASE
@@ -262,12 +279,12 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
   'sb_publishable_mZ7LvM2y2t1xGbN2s1XFDg_DohTdt7q';
 
-
 const db =
   createClient(
     SUPABASE_URL,
     SUPABASE_KEY
   );
+
 
 let categories = [];
 let products = [];
@@ -280,57 +297,73 @@ let currentCategory = null;
 
 async function loadMenu(){
 
-  const categoriesResult =
-    await db
-      .from('categories')
-      .select('*')
-      .eq('active', true)
-      .order('sort_order');
+  try{
+
+    const categoriesResult =
+      await db
+        .from('categories')
+        .select('*')
+        .eq('active', true)
+        .order('sort_order');
 
 
-  if(categoriesResult.error){
+    if(categoriesResult.error){
+
+      showError(
+        categoriesResult.error.message
+      );
+
+      return;
+    }
+
+
+    categories =
+      categoriesResult.data || [];
+
+
+    const productsResult =
+      await db
+        .from('products')
+        .select('*')
+        .eq('active', true)
+        .order('sort_order');
+
+
+    if(productsResult.error){
+
+      showError(
+        productsResult.error.message
+      );
+
+      return;
+    }
+
+
+    products =
+      productsResult.data || [];
+
+
+    renderCategories();
+
+
+    if(categories.length){
+
+      showCategory(
+        categories[0].id
+      );
+
+    }else{
+
+      showError(
+        'No hay categorías activas en el grimorio.'
+      );
+
+    }
+
+  }catch(error){
 
     showError(
-      categoriesResult.error.message
-    );
-
-    return;
-  }
-
-
-  categories =
-    categoriesResult.data;
-
-
-  const productsResult =
-    await db
-      .from('products')
-      .select('*')
-      .eq('active', true)
-      .order('sort_order');
-
-
-  if(productsResult.error){
-
-    showError(
-      productsResult.error.message
-    );
-
-    return;
-  }
-
-
-  products =
-    productsResult.data;
-
-
-  renderCategories();
-
-
-  if(categories.length){
-
-    showCategory(
-      categories[0].id
+      error.message || 'Error desconocido.'
     );
 
   }
@@ -370,14 +403,14 @@ function renderCategories(){
        ${escapeHtml(category.name)}`;
 
 
+    button.dataset.id =
+      category.id;
+
+
     button.addEventListener(
       'click',
       () => showCategory(category.id)
     );
-
-
-    button.dataset.id =
-      category.id;
 
 
     container.appendChild(
@@ -401,8 +434,10 @@ function showCategory(id){
     );
 
 
-  if(!currentCategory)
+  if(!currentCategory){
+
     return;
+  }
 
 
   document
@@ -413,7 +448,7 @@ function showCategory(id){
 
       button.classList.toggle(
         'active',
-        Number(button.dataset.id) === id
+        String(button.dataset.id) === String(id)
       );
 
     });
@@ -429,7 +464,7 @@ function showCategory(id){
   const categoryProducts =
     products.filter(
       p =>
-        p.category_id === id &&
+        String(p.category_id) === String(id) &&
         p.active
     );
 
@@ -589,7 +624,9 @@ function escapeAttribute(value){
 ===================================== */
 
 loadMenu();
+
 </script>
 
 </body>
+
 </html>
