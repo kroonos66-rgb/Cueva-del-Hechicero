@@ -325,14 +325,15 @@ label {
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 
 const SUPABASE_URL = 'https://tmmtbzphcbpevmtokjrg.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_mZ7LvM2y2t1xGbN2s1XFDg_DohTdt7q';
-const { createClient } =
-  supabase;
 
-const db = createClient(
+const SUPABASE_KEY = 'sb_publishable_mZ7LvM2y2t1xGbN2s1XFDg_DohTdt7q';
+
+const db = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
