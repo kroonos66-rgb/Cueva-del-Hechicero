@@ -7,11 +7,7 @@
 <title>La Cueva del Hechicero | Menú</title>
 
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-  window.createSupabaseClient = createClient;
-  window.dispatchEvent(new Event('supabase-ready'));
-</script>
+ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 <style>
 
 *{
@@ -268,11 +264,10 @@ const SUPABASE_KEY =
 
 
 const db =
-  window.createSupabaseClient(
+  createClient(
     SUPABASE_URL,
     SUPABASE_KEY
   );
-
 
 let categories = [];
 let products = [];
