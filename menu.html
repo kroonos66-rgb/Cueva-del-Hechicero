@@ -1,1 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>La Cueva del Hechicero | Menú</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 50% 0%, #30251c 0%, #17131a 45%, #0d0b10 100%);
+  color:#f4ead3;
+  font-family:Georgia,serif;
+}
+
+.container{
+  max-width:760px;
+  margin:auto;
+  padding:20px 15px 50px;
+}
+
+.hero{
+  text-align:center;
+  padding:30px 15px 25px;
+}
+
+.rune{
+  color:#c5a467;
+  font-size:27px;
+  margin-bottom:10px;
+}
+
+h1{
+  margin:0;
+  font-size:32px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+}
+
+.subtitle{
+  color:#c9bda3;
+  font-size:15px;
+  font-style:italic;
+  margin-top:8px;
+}
+
+.magic-line{
+  width:100px;
+  height:1px;
+  background:#8d7346;
+  margin:20px auto;
+}
+
+.categories{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.category-button{
+  min-height:62px;
+  border:1px solid #514552;
+  border-radius:14px;
+  background:#211b24;
+  color:#f4ead3;
+  font-family:Georgia,serif;
+  font-size:16px;
+  cursor:pointer;
+  padding:12px;
+  transition:.2s;
+}
+
+.category-button:hover,
+.category-button.active{
+  background:#30272d;
+  border-color:#c5a467;
+  color:#e0c487;
+}
+
+.products{
+  margin-top:22px;
+}
+
+.section-title{
+  color:#c5a467;
+  text-align:center;
+  font-size:24px;
+  margin-bottom:15px;
+}
+
+.product{
+  display:flex;
+  gap:14px;
+  padding:16px 5px;
+  border-bottom:1px solid #39313c;
+}
+
+.product-image{
+  width:85px;
+  height:85px;
+  flex-shrink:0;
+  object-fit:cover;
+  border-radius:12px;
+  background:#28222c;
+}
+
+.product-image.placeholder{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+}
+
+.product-info{
+  flex:1;
+}
+
+.product-name{
+  font-size:18px;
+  font-weight:bold;
+}
+
+.product-description{
+  color:#bdb29e;
+  font-family:Arial,sans-serif;
+  font-size:13px;
+  line-height:1.4;
+  margin-top:5px;
+}
+
+.product-price{
+  color:#d2b36e;
+  font-size:17px;
+  font-weight:bold;
+  white-space:nowrap;
+}
+
+.footer{
+  text-align:center;
+  color:#8e8490;
+  font-family:Arial,sans-serif;
+  font-size:12px;
+  margin-top:35px;
+}
+
+.loading{
+  text-align:center;
+  color:#c9bda3;
+  padding:40px;
+}
+
+.error{
+  text-align:center;
+  color:#d79b9b;
+  padding:30px;
+}
+
+@media(max-width:500px){
+
+  .container{
+    padding-left:12px;
+    padding-right:12px;
+  }
+
+  h1{
+    font-size:25px;
+  }
+
+  .categories{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .category-button{
+    font-size:14px;
+  }
+
+  .product{
+    gap:10px;
+  }
+
+  .product-image{
+    width:70px;
+    height:70px;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <header class="hero">
+
+    <div class="rune">
+      ✦ ☽ ✦
+    </div>
+
+    <h1>
+      La Cueva del Hechicero
+    </h1>
+
+    <div class="subtitle">
+      Menú mágico
+    </div>
+
+    <div class="magic-line"></div>
+
+  </header>
+
+
+  <div
+    id="categories"
+    class="categories">
+  </div>
+
+
+  <section class="products">
+
+    <div
+      id="sectionTitle"
+      class="section-title">
+    </div>
+
+    <div
+      id="products">
+      <div class="loading">
+        Consultando el grimorio...
+      </div>
+    </div>
+
+  </section>
+
+
+  <footer class="footer">
+    ✦ Gracias por visitar La Cueva del Hechicero ✦
+  </footer>
+
+</div>
+
+
+<script>
+
+/* =====================================
+   CONEXIÓN SUPABASE
+===================================== */
+
+const SUPABASE_URL =
+  https://tmmtbzphcbpevmtokjrg.supabase.co;
+
+const SUPABASE_KEY =
+  sb_publishable_mZ7LvM2y2t1xGbN2s1XFDg_DohTdt7q;
+
+
+const db =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+let categories = [];
+let products = [];
+let currentCategory = null;
+
+
+/* =====================================
+   CARGAR DATOS
+===================================== */
+
+async function loadMenu(){
+
+  const categoriesResult =
+    await db
+      .from('categories')
+      .select('*')
+      .eq('active', true)
+      .order('sort_order');
+
+
+  if(categoriesResult.error){
+
+    showError(
+      categoriesResult.error.message
+    );
+
+    return;
+  }
+
+
+  categories =
+    categoriesResult.data;
+
+
+  const productsResult =
+    await db
+      .from('products')
+      .select('*')
+      .eq('active', true)
+      .order('sort_order');
+
+
+  if(productsResult.error){
+
+    showError(
+      productsResult.error.message
+    );
+
+    return;
+  }
+
+
+  products =
+    productsResult.data;
+
+
+  renderCategories();
+
+
+  if(categories.length){
+
+    showCategory(
+      categories[0].id
+    );
+
+  }
+
+}
+
+
+/* =====================================
+   CATEGORÍAS
+===================================== */
+
+function renderCategories(){
+
+  const container =
+    document.getElementById(
+      'categories'
+    );
+
+
+  container.innerHTML = '';
+
+
+  categories.forEach(category => {
+
+    const button =
+      document.createElement(
+        'button'
+      );
+
+
+    button.className =
+      'category-button';
+
+
+    button.innerHTML =
+      `${category.icon || '🍽️'}
+       ${escapeHtml(category.name)}`;
+
+
+    button.addEventListener(
+      'click',
+      () => showCategory(category.id)
+    );
+
+
+    button.dataset.id =
+      category.id;
+
+
+    container.appendChild(
+      button
+    );
+
+  });
+
+}
+
+
+/* =====================================
+   MOSTRAR CATEGORÍA
+===================================== */
+
+function showCategory(id){
+
+  currentCategory =
+    categories.find(
+      c => c.id === id
+    );
+
+
+  if(!currentCategory)
+    return;
+
+
+  document
+    .querySelectorAll(
+      '.category-button'
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        'active',
+        Number(button.dataset.id) === id
+      );
+
+    });
+
+
+  document.getElementById(
+    'sectionTitle'
+  ).textContent =
+    `${currentCategory.icon || '🍽️'}
+     ${currentCategory.name}`;
+
+
+  const categoryProducts =
+    products.filter(
+      p =>
+        p.category_id === id &&
+        p.active
+    );
+
+
+  renderProducts(
+    categoryProducts
+  );
+
+}
+
+
+/* =====================================
+   PRODUCTOS
+===================================== */
+
+function renderProducts(list){
+
+  const container =
+    document.getElementById(
+      'products'
+    );
+
+
+  container.innerHTML = '';
+
+
+  if(!list.length){
+
+    container.innerHTML =
+      '<div class="loading">Próximamente...</div>';
+
+    return;
+  }
+
+
+  list.forEach(product => {
+
+    const article =
+      document.createElement(
+        'article'
+      );
+
+
+    article.className =
+      'product';
+
+
+    let imageHTML;
+
+
+    if(product.image_url){
+
+      imageHTML =
+        `<img
+          class="product-image"
+          src="${escapeAttribute(product.image_url)}"
+          alt="${escapeAttribute(product.name)}"
+          loading="lazy"
+        >`;
+
+    }else{
+
+      imageHTML =
+        `<div class="product-image placeholder">
+          ✦
+        </div>`;
+
+    }
+
+
+    article.innerHTML = `
+
+      ${imageHTML}
+
+      <div class="product-info">
+
+        <div class="product-name">
+          ${escapeHtml(product.name)}
+        </div>
+
+        <div class="product-description">
+          ${escapeHtml(product.description || '')}
+        </div>
+
+      </div>
+
+      <div class="product-price">
+        $${Number(product.price).toFixed(2)}
+      </div>
+
+    `;
+
+
+    container.appendChild(
+      article
+    );
+
+  });
+
+}
+
+
+/* =====================================
+   ERRORES
+===================================== */
+
+function showError(message){
+
+  document.getElementById(
+    'products'
+  ).innerHTML = `
+
+    <div class="error">
+
+      No pudimos consultar el menú.
+
+      <br><br>
+
+      ${escapeHtml(message)}
+
+    </div>
+
+  `;
+
+}
+
+
+/* =====================================
+   SEGURIDAD
+===================================== */
+
+function escapeHtml(value){
+
+  return String(value ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+
+}
+
+
+function escapeAttribute(value){
+
+  return String(value ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('"','&quot;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;');
+
+}
+
+
+/* =====================================
+   INICIAR
+===================================== */
+
+loadMenu();
+
+</script>
+
+</body>
+</html>
